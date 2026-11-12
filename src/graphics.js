@@ -22,7 +22,7 @@ export function createGraphics(canvas, quality) {
   renderer.shadowMap.enabled = false;
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x243737, 0.025);
-  const camera = new THREE.PerspectiveCamera(58, 1, 0.15, 100);
+  const camera = new THREE.PerspectiveCamera(55, 1, 0.15, 100);
   const graphics = {
     renderer,
     scene,

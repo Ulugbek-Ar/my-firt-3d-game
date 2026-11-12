@@ -10,7 +10,9 @@ export class ShrineInteraction {
       player.position.z - this.shrine.z,
     );
     this.available =
-      this.distance < 3.6 && player.position.y < 1 && !state.objectiveComplete;
+      this.distance < 3.6 &&
+      player.position.y - (player.groundHeight ?? 0) < 1 &&
+      !state.objectiveComplete;
   }
   interact(state) {
     if (!this.available) return false;

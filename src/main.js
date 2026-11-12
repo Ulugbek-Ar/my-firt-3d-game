@@ -7,7 +7,7 @@ import { Input } from "./input.js";
 import { createState, PRESETS, SPAWN } from "./state.js";
 import { SaveSystem } from "./save.js";
 import { ShrineInteraction } from "./interactions.js";
-import { canOccupy } from "./collision.js";
+import { resolveSavedPosition } from "./collision.js";
 import { UI } from "./ui.js";
 
 function boot() {
@@ -91,7 +91,7 @@ function boot() {
       state.memory = 25;
       player.reset();
       camera.yaw = 0;
-      camera.pitch = 0.27;
+      camera.pitch = 0.2;
       camera.update(0, player, input, true);
       state.mode = "intro";
       ui.intro();
@@ -114,13 +114,10 @@ function boot() {
       state.playSeconds = data.playSeconds;
       state.graphics = saveSystem.readGraphics() || data.graphics;
       graphics.setQuality(state.graphics);
-      player.reset(
-        canOccupy(data.position.x, data.position.z, world.colliders)
-          ? data.position
-          : SPAWN,
-      );
+      world.setQuality(state.graphics);
+      player.reset(resolveSavedPosition(data.position, world.colliders, SPAWN));
       camera.yaw = 0;
-      camera.pitch = 0.27;
+      camera.pitch = 0.2;
       camera.update(0, player, input, true);
       resume();
     },
@@ -133,6 +130,7 @@ function boot() {
     quality(value) {
       state.graphics = value;
       graphics.setQuality(value);
+      world.setQuality(value);
       if (!saveSystem.writeGraphics(value))
         ui.toast("Sozlamalarni saqlab bo‘lmadi.");
       if (hasGame) save();
@@ -145,9 +143,13 @@ function boot() {
   });
   try {
     graphics = createGraphics(document.querySelector("#world"), state.graphics);
-    world = createWorld(graphics.scene);
-    player = new Player(graphics.scene, world.colliders);
-    camera = new FollowCamera(graphics.camera, world.cameraObstacles);
+    world = createWorld(graphics.scene, state.graphics);
+    player = new Player(graphics.scene, world.colliders, world.groundHeight);
+    camera = new FollowCamera(
+      graphics.camera,
+      world.cameraObstacles,
+      world.groundHeight,
+    );
     input = new Input(
       graphics.renderer.domElement,
       () => state.mode === "playing",
