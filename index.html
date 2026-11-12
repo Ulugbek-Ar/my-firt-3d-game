@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101918" />
+    <title>So‘nggi davr — Asterfall</title>
+  </head>
+  <body>
+    <canvas id="world" aria-label="Asterfall uch o‘lchamli dunyosi"></canvas>
+    <div id="vignette"></div>
+    <header id="masthead">
+      <span class="sigil">◈</span><span>SO‘NGGI DAVR</span
+      ><span class="edition">I / IBTIDO</span>
+    </header>
+    <div id="hud" hidden>
+      <div class="location">
+        <small>ELYNDRA · CHEGARA QISHLOG‘I</small>
+        <h2>Asterfall</h2>
+        <span>Unutilgan davrning so‘nggi izlari</span>
+      </div>
+      <div class="objective">
+        <small id="objective-label">BIRINCHI XOTIRA</small>
+        <p id="objective-text">Qadimiy xotira maskanini toping.</p>
+        <span id="distance"></span>
+      </div>
+      <div class="vitals">
+        <div class="portrait">K</div>
+        <div class="bars">
+          <strong>KAEL <small>Xotiralar sohibi</small></strong
+          ><label>Hayot <span>100 / 100</span></label
+          ><progress id="health" value="100" max="100"></progress
+          ><label>Bardosh <span id="stamina-value">100 / 100</span></label
+          ><progress id="stamina" value="100" max="100"></progress
+          ><label>Xotira quvvati <span id="memory-value">25 / 100</span></label
+          ><progress id="memory" value="25" max="100"></progress>
+        </div>
+      </div>
+      <div class="controls">
+        <kbd>W A S D</kbd> Yurish <kbd>SHIFT</kbd> Yugurish
+        <kbd>SPACE</kbd> Sakrash<br /><span
+          >Sichqoncha: kamerani burish · <kbd>ESC</kbd> Tanaffus</span
+        >
+      </div>
+      <div class="telemetry">
+        <span id="fps">— FPS</span><span id="quality-label">PAST</span
+        ><button id="pause-button" aria-label="Tanaffus">Ⅱ</button>
+      </div>
+      <div id="prompt" hidden>
+        <kbd>E</kbd><span>Xotiraga quloq tuting</span>
+      </div>
+      <div id="reticle">·</div>
+    </div>
+    <main id="overlay"></main>
+    <div id="toast" role="status" hidden></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
