@@ -5,8 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#101918" />
     <title>So‘nggi davr — Asterfall</title>
+    <style>
+      #boot-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 30;
+        background: #0b1419;
+        color: #c6b385;
+        display: grid;
+        place-content: center;
+        text-align: center;
+        font: 12px Georgia;
+        letter-spacing: 0.2em;
+      }
+      #boot-screen span {
+        font-size: 50px;
+      }
+      #boot-screen small {
+        color: #84968f;
+      }
+      #boot-screen[hidden] {
+        display: none;
+      }
+    </style>
   </head>
   <body>
+    <div id="boot-screen" role="status">
+      <span>◈</span>
+      <p>SO‘NGGI DAVR</p>
+      <small>Xotiralar uyg‘onmoqda…</small>
+    </div>
     <canvas id="world" aria-label="Asterfall uch o‘lchamli dunyosi"></canvas>
     <div id="vignette"></div>
     <header id="masthead">
@@ -25,7 +53,13 @@
         <span id="distance"></span>
       </div>
       <div class="vitals">
-        <div class="portrait">K</div>
+        <div class="portrait">
+          <svg viewBox="0 0 40 50" aria-hidden="true">
+            <path
+              d="M20 3 36 12V34L20 47 4 34V12Z M20 12V38 M11 20 29 30 M11 30 29 20"
+            />
+          </svg>
+        </div>
         <div class="bars">
           <strong>KAEL <small>Xotiralar sohibi</small></strong
           ><label>Hayot <span>100 / 100</span></label
@@ -51,7 +85,7 @@
       </div>
       <div id="reticle">·</div>
     </div>
-    <main id="overlay"></main>
+    <main id="overlay" aria-live="polite"></main>
     <div id="toast" role="status" hidden></div>
     <script type="module" src="/src/main.js"></script>
   </body>

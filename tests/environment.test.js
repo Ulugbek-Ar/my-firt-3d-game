@@ -138,16 +138,11 @@ test("authored village keeps the original shrine route clear and optional detail
     return { calls, triangles };
   }
   const low = budget("low");
-  const visibleCylinders = scene.children
-    .filter(
-      (o) =>
-        o.isInstancedMesh &&
-        o.visible &&
-        o.geometry.type === "CylinderGeometry",
-    )
-    .reduce((total, o) => total + o.count, 0);
+  const visibleTrunks = scene.children
+    .filter((o) => o.visible)
+    .reduce((total, o) => total + (o.userData.trunks ?? 0), 0);
   assert.ok(
-    visibleCylinders >= world.stats.trees,
+    visibleTrunks >= world.stats.trees,
     "Low never hides colliding tree trunks",
   );
   const medium = budget("medium");
@@ -156,8 +151,8 @@ test("authored village keeps the original shrine route clear and optional detail
     medium,
     trees: world.stats.trees,
   });
-  assert.ok(low.calls < 60 && low.triangles < 40000);
-  assert.ok(medium.triangles > low.triangles && medium.triangles < 60000);
+  assert.ok(low.calls < 80 && low.triangles < 55000);
+  assert.ok(medium.triangles > low.triangles && medium.triangles < 65000);
   assert.equal(
     scene.children.filter((o) => o.isLight).length,
     2,

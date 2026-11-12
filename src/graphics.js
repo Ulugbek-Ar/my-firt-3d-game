@@ -28,15 +28,21 @@ export function createGraphics(canvas, quality) {
     scene,
     camera,
     quality,
+    resolution: null,
     resize() {
       const p = PRESETS[this.quality];
       renderer.setPixelRatio(
-        Math.min(window.devicePixelRatio || 1, p.pixelRatio) * p.scale,
+        Math.min(window.devicePixelRatio || 1, p.pixelRatio) *
+          (this.resolution ?? p.scale),
       );
       renderer.setSize(window.innerWidth, window.innerHeight, false);
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.far = p.far;
       camera.updateProjectionMatrix();
+    },
+    setResolution(value) {
+      this.resolution = value;
+      this.resize();
     },
     setQuality(value) {
       this.quality = value;

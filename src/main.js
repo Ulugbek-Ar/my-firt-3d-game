@@ -1,4 +1,5 @@
 import "./style.css";
+import { loadArt } from "./art/materials.js";
 import { createGraphics } from "./graphics.js";
 import { createWorld } from "./world.js";
 import { Player } from "./player.js";
@@ -10,7 +11,7 @@ import { ShrineInteraction } from "./interactions.js";
 import { resolveSavedPosition } from "./collision.js";
 import { UI } from "./ui.js";
 
-function boot() {
+async function boot() {
   const state = createState();
   let saveSystem;
   try {
@@ -20,6 +21,7 @@ function boot() {
   }
   state.graphics =
     saveSystem.readGraphics() || saveSystem.load()?.graphics || "low";
+  state.resolution = saveSystem.readResolution();
   let graphics,
     world,
     player,
@@ -43,6 +45,8 @@ function boot() {
       );
   }
   function resume() {
+    player.model.visible = true;
+    player.shadow.visible = true;
     state.mode = "playing";
     input.clear();
     ui.play();
@@ -60,6 +64,13 @@ function boot() {
     save();
     state.mode = "menu";
     release();
+    showMainMenu();
+  }
+  function showMainMenu() {
+    player.model.visible = false;
+    player.shadow.visible = false;
+    graphics.camera.position.set(3.6, 5.4, 26);
+    graphics.camera.lookAt(-2, 2.2, -8);
     ui.menu(!!saveSystem.load());
   }
   function back() {
@@ -68,7 +79,7 @@ function boot() {
       ui.pause();
     } else {
       state.mode = "menu";
-      ui.menu(!!saveSystem.load());
+      showMainMenu();
     }
   }
   const ui = new UI({
@@ -89,6 +100,8 @@ function boot() {
       state.playSeconds = 0;
       state.stamina = 100;
       state.memory = 25;
+      player.model.visible = true;
+      player.shadow.visible = true;
       player.reset();
       camera.yaw = 0;
       camera.pitch = 0.2;
@@ -125,7 +138,13 @@ function boot() {
       returnTo = state.mode === "paused" ? "paused" : "menu";
       state.mode = "settings";
       release();
-      ui.settings(state.graphics, back);
+      ui.settings(state.graphics, back, state.resolution);
+    },
+    resolution(value) {
+      state.resolution = value;
+      graphics.setResolution(value);
+      if (!saveSystem.writeResolution(value))
+        ui.toast("Sozlamalarni saqlab bo‘lmadi.");
     },
     quality(value) {
       state.graphics = value;
@@ -141,8 +160,17 @@ function boot() {
       ui.credits(back);
     },
   });
+  document.querySelector("#boot-screen").hidden = true;
+  ui.loading(0);
+  try {
+    await loadArt((progress) => ui.loading(progress));
+  } catch (error) {
+    console.warn("Surface art unavailable; using fallback materials.", error);
+    ui.toast("Tasvirlar yuklanmadi. Soddalashtirilgan ko‘rinish yoqildi.");
+  }
   try {
     graphics = createGraphics(document.querySelector("#world"), state.graphics);
+    graphics.setResolution(state.resolution);
     world = createWorld(graphics.scene, state.graphics);
     player = new Player(graphics.scene, world.colliders, world.groundHeight);
     camera = new FollowCamera(
@@ -162,7 +190,7 @@ function boot() {
     ui.fatal();
     return;
   }
-  ui.menu(!!saveSystem.load());
+  showMainMenu();
   let last = 0,
     accumulator = 0,
     lastRender = 0,
@@ -210,6 +238,7 @@ function boot() {
           release();
           save();
           ui.memory();
+          ui.toast("Xotira uyg‘ondi · Maqsad bajarildi.");
         }
       }
       camera.update(dt, player, input);
@@ -225,7 +254,7 @@ function boot() {
     const interval = 1000 / PRESETS[state.graphics].fps;
     if (now - lastRender >= interval - 0.5) {
       lastRender = now - ((now - lastRender) % interval);
-      world.update(now / 1000);
+      world.update(now / 1000, graphics.camera.position);
       graphics.renderer.render(graphics.scene, graphics.camera);
       frames++;
       if (now - fpsTime > 1000) {

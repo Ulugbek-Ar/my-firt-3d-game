@@ -176,6 +176,23 @@ export function createBuildings(batch, addSolid, lanterns, addCameraObstacle) {
     box(0x666b60, w * 0.28, h + 2.1, -0.6, 0.68, 2.2, 0.72);
     box(0x424d48, w * 0.28, h + 3.22, -0.6, 0.86, 0.19, 0.9);
     lanterns.push([x + 1.05, y + 2.35, z + front + 0.45]);
+    // Distinctive dormers, projecting upper rooms and workshop lean-to silhouettes.
+    if (x > 0 && z > 0) {
+      box(0x9a9275, -1.2, h + 1.25, d / 2 - 0.6, 1.5, 1.35, 1.4);
+      box(0x424e59, -1.2, h + 2.02, d / 2 - 0.6, 1.9, 0.16, 1.9, 0.15);
+      box(0x272b26, -1.2, h + 1.35, d / 2 + 0.12, 0.8, 0.8, 0.12);
+      box(0xbe9054, -1.2, h + 1.35, d / 2 + 0.2, 0.6, 0.58, 0.06);
+    }
+    if (x < 0 && z > 0) {
+      box(0x9a9275, -1.6, 2.9, d / 2 + 0.25, 1.9, 1.1, 0.65);
+      box(0x414136, -1.6, 2.4, d / 2 + 0.62, 2.15, 0.12, 0.16);
+      box(0x272b26, -1.6, 3, d / 2 + 0.62, 0.95, 0.65, 0.1);
+    }
+    if (x > 0 && z < 0) {
+      box(roof, 0, h + 1, -d / 2, w + 1.2, 0.18, 2.5, -0.28);
+      for (const dx of [-w / 2, w / 2])
+        box(0x373b32, dx, h / 2, -d / 2 + 0.2, 0.18, h, 0.18);
+    }
     // Door awning and a barrel beside it.
     box(roof, 0, 2.95, front + 0.42, 2.1, 0.15, 1, 0.16);
     batch.add(

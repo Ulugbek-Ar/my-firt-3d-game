@@ -19,8 +19,8 @@ function glowTexture() {
 export function createAtmosphere(scene, batch, lanterns) {
   scene.fog = new THREE.FogExp2(0x657676, 0.019);
   scene.background = new THREE.Color(0x263943);
-  scene.add(new THREE.HemisphereLight(0xb0c4d1, 0x5e6143, 1.9));
-  const moonlight = new THREE.DirectionalLight(0xd4dcc6, 2.3);
+  scene.add(new THREE.HemisphereLight(0xaebfd0, 0x4d5746, 1.5));
+  const moonlight = new THREE.DirectionalLight(0xc6d5d7, 2.7);
   moonlight.position.set(-22, 35, 16);
   scene.add(moonlight);
   // A tiny gradient background avoids dome clipping on Low's short far plane.

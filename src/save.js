@@ -59,6 +59,24 @@ export class SaveSystem {
       return false;
     }
   }
+  readResolution() {
+    try {
+      const raw = this.storage.getItem("the-last-epoch.resolution");
+      const value = Number(raw);
+      return raw && [0.6, 0.8, 1].includes(value) ? value : null;
+    } catch {
+      return null;
+    }
+  }
+  writeResolution(value) {
+    if (![0.6, 0.8, 1].includes(value)) return false;
+    try {
+      this.storage.setItem("the-last-epoch.resolution", String(value));
+      return true;
+    } catch {
+      return false;
+    }
+  }
   readGraphics() {
     try {
       const value = this.storage.getItem(SETTINGS_KEY);

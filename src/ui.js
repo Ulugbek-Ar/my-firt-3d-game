@@ -4,19 +4,41 @@ export class UI {
     this.overlay = document.querySelector("#overlay");
     this.hud = document.querySelector("#hud");
     this.toastTimer = 0;
+    this.refs = Object.fromEntries(
+      [
+        "stamina",
+        "stamina-value",
+        "memory",
+        "memory-value",
+        "health",
+        "objective-label",
+        "objective-text",
+        "distance",
+        "prompt",
+        "fps",
+        "quality-label",
+      ].map((id) => [id, document.getElementById(id)]),
+    );
     document.querySelector("#pause-button").onclick = actions.pause;
   }
   panel(content, kind = "") {
     this.hud.hidden = true;
+    this.overlay.dataset.kind = kind || "menu";
     this.overlay.innerHTML = `<section class="panel ${kind}">${content}</section>`;
     this.overlay.querySelectorAll("[data-action]").forEach((button) => {
       button.onclick = () => this.actions[button.dataset.action]?.();
     });
     this.overlay.querySelector("button:not(:disabled)")?.focus();
   }
+  loading(progress) {
+    this.panel(
+      `<div class="loading-sigil">◇</div><div class="eyebrow">Elyndra solnomalari</div><h1>Xotiralar<br>uyg‘onmoqda</h1><p class="lede">Asterfall sari yo‘l ochilmoqda…</p><progress aria-label="Yuklanmoqda" value="${progress}" max="1"></progress><small class="footnote">${Math.round(progress * 100)}% · Olam tayyorlanmoqda</small>`,
+      "loading",
+    );
+  }
   menu(hasSave) {
     this.panel(
-      `<div class="eyebrow">Elyndra solnomalari · Birinchi bob</div><h1>SO‘NGGI<br><em>DAVR</em></h1><div class="rule"></div><p class="lede">Dunyo hammasini unutadi.<br>Sen esa eslaysan.</p><div class="menu"><button class="primary" data-action="newGame">Yangi o‘yin <span>↗</span></button><button data-action="continueGame" ${hasSave ? "" : "disabled"}>Davom etish <span>→</span></button><button data-action="settings">Sozlamalar <span>+</span></button><button data-action="credits">Mualliflar <span>+</span></button></div><div class="footnote">Ibtido · Asterfall<br>Har yuz yilda tarix qayta yoziladi.</div>`,
+      `<div class="eyebrow"><span class="line"></span> Elyndra solnomalari / I</div><h1>SO‘NGGI<br><em>DAVR</em></h1><div class="rule"></div><p class="lede">Dunyo hammasini unutadi.<br>Sen esa eslaysan.</p><div class="menu"><button class="primary" data-action="newGame"><small>01</small> Yangi o‘yin <span>↗</span></button><button data-action="continueGame" ${hasSave ? "" : "disabled"}><small>02</small> Davom etish <span>→</span></button><button data-action="settings"><small>03</small> Sozlamalar <span>+</span></button><button data-action="credits"><small>04</small> Mualliflar <span>+</span></button></div><div class="footnote">◈ &nbsp; ASTERFALL — UNUTILGAN CHEGARA<br><span>Har yuz yilda tarix qayta yoziladi.</span></div><aside class="menu-world-caption"><small>I · UYG‘ONISH</small><p>Hamma unutgan dunyoda,<br>xotira — sening yagona yo‘ling.</p><span>ELYNDRA · SO‘NGGI KUNLAR</span></aside>`,
     );
   }
   intro() {
@@ -34,13 +56,16 @@ export class UI {
       `<div class="eyebrow">Vaqt to‘xtadi</div><h1>Tanaffus</h1><div class="menu"><button class="primary" data-action="resume">Qaytish →</button><button data-action="save">Saqlash</button><button data-action="settings">Sozlamalar</button><button data-action="mainMenu">Bosh menyu</button></div><p class="footnote">Xotiralar avtomatik saqlanadi.</p>`,
     );
   }
-  settings(quality, back) {
+  settings(quality, back, resolution = null) {
     this.panel(
-      `<div class="eyebrow">Dunyo ko‘rinishi</div><h1>Sozlamalar</h1><div class="settings-row"><label for="quality">Grafika sifati</label><select id="quality"><option value="low">Past</option><option value="medium">O‘rta</option></select></div><p class="lede">Past: 30 kadr/s chegarasi va pastroq aniqlik. Eski qurilmalar uchun tavsiya etiladi.<br>O‘rta: 60 kadr/s chegarasi va yuqoriroq aniqlik.</p><div class="menu"><button data-action="back">← Qaytish</button></div>`,
+      `<div class="eyebrow">Dunyo ko‘rinishi</div><h1>Sozlamalar</h1><div class="settings-row"><label for="quality">Grafika sifati</label><select id="quality"><option value="low">Past</option><option value="medium">O‘rta</option></select></div><div class="settings-row"><label for="resolution">Tasvir aniqligi</label><select id="resolution"><option value="0.6">60% · Tezroq</option><option value="0.8">80% · Muvozanatli</option><option value="1">100% · Aniqroq</option></select></div><p class="lede">Past: 30 kadr/s chegarasi va pastroq aniqlik. Eski qurilmalar uchun tavsiya etiladi.<br>O‘rta: 60 kadr/s chegarasi va yuqoriroq aniqlik.</p><div class="menu"><button data-action="back">← Qaytish</button></div>`,
     );
     const select = document.querySelector("#quality");
     select.value = quality;
     select.onchange = () => this.actions.quality(select.value);
+    const scale = document.querySelector("#resolution");
+    scale.value = String(resolution ?? (quality === "low" ? 0.8 : 1));
+    scale.onchange = () => this.actions.resolution(Number(scale.value));
     this.actions.back = back;
   }
   credits(back) {
@@ -56,25 +81,25 @@ export class UI {
     );
   }
   update(state, interaction, fps) {
-    document.querySelector("#stamina").value = state.stamina;
-    document.querySelector("#stamina-value").textContent =
+    this.refs.health.value = state.health;
+    this.refs.stamina.value = state.stamina;
+    this.refs["stamina-value"].textContent =
       `${Math.round(state.stamina)} / 100`;
-    document.querySelector("#memory").value = state.memory;
-    document.querySelector("#memory-value").textContent =
-      `${state.memory} / 100`;
-    document.querySelector("#objective-label").textContent =
-      state.objectiveComplete ? "✓ XOTIRA UYG‘ONDI" : "BIRINCHI XOTIRA";
-    document.querySelector("#objective-text").textContent =
-      state.objectiveComplete
-        ? "Maskan topildi. Asterfallni o‘rganing."
-        : "Qadimiy xotira maskanini toping.";
-    document.querySelector("#distance").textContent = state.objectiveComplete
+    this.refs["memory"].value = state.memory;
+    this.refs["memory-value"].textContent = `${state.memory} / 100`;
+    this.refs["objective-label"].textContent = state.objectiveComplete
+      ? "✓ XOTIRA UYG‘ONDI"
+      : "BIRINCHI XOTIRA";
+    this.refs["objective-text"].textContent = state.objectiveComplete
+      ? "Maskan topildi. Asterfallni o‘rganing."
+      : "Qadimiy xotira maskanini toping.";
+    this.refs["distance"].textContent = state.objectiveComplete
       ? "Birinchi bob yakunlandi"
       : `◇ ${Math.round(interaction.distance)} m · Qishloq ortida`;
-    document.querySelector("#prompt").hidden =
+    this.refs["prompt"].hidden =
       !interaction.available || state.mode !== "playing";
-    document.querySelector("#fps").textContent = `${fps} FPS`;
-    document.querySelector("#quality-label").textContent =
+    this.refs["fps"].textContent = `${fps} FPS`;
+    this.refs["quality-label"].textContent =
       state.graphics === "low" ? "PAST" : "O‘RTA";
   }
   toast(message) {

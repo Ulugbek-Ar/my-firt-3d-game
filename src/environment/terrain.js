@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { getArt } from "../art/materials.js";
 
 const SIZE = 128,
   STEPS = 48,
@@ -56,20 +57,25 @@ export function createTerrain(scene) {
     color.setHSL(
       0.255 + tint * 0.5,
       0.18,
-      0.16 + tint + Math.min(0.035, elevation(x, z) * 0.004),
+      0.19 + tint + Math.min(0.035, elevation(x, z) * 0.004),
     );
     for (let n = 0; n < 3; n++) color.toArray(colors, (i + n) * 3);
   }
   flat.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  const terrainUV = flat.attributes.uv;
+  for (let i = 0; i < p.count; i++)
+    terrainUV.setXY(i, p.getX(i) * 0.24, p.getZ(i) * 0.24);
   flat.computeVertexNormals();
   const material = new THREE.MeshLambertMaterial({
     vertexColors: true,
+    map: getArt().ground,
     flatShading: true,
   });
   const terrain = new THREE.Mesh(flat, material);
   scene.add(terrain);
   const pathMaterial = new THREE.MeshLambertMaterial({
-    color: 0x655d49,
+    color: 0x82745e,
+    map: getArt().mud,
     flatShading: true,
   });
   function ribbon(start, end, width, point) {
@@ -95,6 +101,15 @@ export function createTerrain(scene) {
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+    g.setAttribute(
+      "uv",
+      new THREE.Float32BufferAttribute(
+        vertices.flatMap((_, i) =>
+          i % 3 === 0 ? [vertices[i] * 0.4, vertices[i + 2] * 0.4] : [],
+        ),
+        2,
+      ),
+    );
     g.computeVertexNormals();
     scene.add(new THREE.Mesh(g, pathMaterial));
   }

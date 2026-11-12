@@ -1,186 +1,282 @@
 import * as THREE from "three";
+import { artMaterial, texturedGeometry } from "./art/materials.js";
 
-// Procedural traveler silhouette: hood, layered coat, leather straps and a split cloak.
 export function createCharacter() {
   const root = new THREE.Group(),
     body = new THREE.Group();
   root.add(body);
+  const surfaces = {
+    coat: "cloth",
+    cloak: "cloth",
+    leather: "leather",
+    metal: "metal",
+    hood: "cloth",
+  };
   const materials = {
-    coat: new THREE.MeshLambertMaterial({ color: 0x776e54, flatShading: true }),
-    cloak: new THREE.MeshLambertMaterial({
-      color: 0x70473e,
-      flatShading: true,
-      side: THREE.DoubleSide,
-    }),
-    leather: new THREE.MeshLambertMaterial({
-      color: 0x383b32,
-      flatShading: true,
-    }),
-    metal: new THREE.MeshLambertMaterial({
-      color: 0x9c9f8e,
-      flatShading: true,
-    }),
-    hood: new THREE.MeshLambertMaterial({ color: 0x575b49, flatShading: true }),
-    face: new THREE.MeshLambertMaterial({ color: 0x252f2d }),
-    skin: new THREE.MeshLambertMaterial({ color: 0xb3a384 }),
-    clasp: new THREE.MeshBasicMaterial({ color: 0xcab679 }),
+    coat: artMaterial(0x93866a),
+    cloak: artMaterial(0x9a5146, { side: THREE.DoubleSide }),
+    leather: artMaterial(0x4a4235),
+    metal: artMaterial(0xaaa589),
+    hood: artMaterial(0x68654e),
+    face: new THREE.MeshLambertMaterial({ color: 0x202a29 }),
+    skin: new THREE.MeshLambertMaterial({ color: 0xb9a88b }),
+    clasp: new THREE.MeshBasicMaterial({ color: 0xbeb48b }),
   };
   function part(parent, geometry, material, x, y, z) {
-    const mesh = new THREE.Mesh(geometry, materials[material]);
+    const g = surfaces[material]
+      ? texturedGeometry(geometry, surfaces[material])
+      : geometry;
+    const mesh = new THREE.Mesh(g, materials[material]);
     mesh.position.set(x, y, z);
     parent.add(mesh);
     return mesh;
   }
+  const lathe = (points, segments = 8) =>
+    new THREE.LatheGeometry(
+      points.map(([r, y]) => new THREE.Vector2(r, y)),
+      segments,
+    );
+  // Tailored torso and a flared coat, rather than intersecting boxes.
   part(
     body,
-    new THREE.CylinderGeometry(0.29, 0.38, 0.65, 6),
+    lathe([
+      [0.26, -0.3],
+      [0.28, -0.15],
+      [0.32, 0.18],
+      [0.23, 0.36],
+    ]),
     "coat",
     0,
-    1.28,
+    1.23,
     0,
-  );
+  ).scale.z = 0.72;
   part(
     body,
-    new THREE.CylinderGeometry(0.33, 0.45, 0.46, 7),
+    lathe([
+      [0.44, -0.23],
+      [0.36, 0.08],
+      [0.28, 0.26],
+    ]),
     "coat",
     0,
-    0.83,
+    0.9,
     0,
-  );
-  part(body, new THREE.BoxGeometry(0.68, 0.11, 0.42), "leather", 0, 1.04, 0);
-  part(body, new THREE.BoxGeometry(0.15, 0.13, 0.06), "clasp", 0, 1.04, 0.24);
+  ).scale.z = 0.72;
   part(
     body,
-    new THREE.BoxGeometry(0.12, 0.8, 0.07),
+    new THREE.CylinderGeometry(0.295, 0.3, 0.105, 10),
     "leather",
-    -0.07,
-    1.34,
-    0.28,
-  ).rotation.z = -0.45;
+    0,
+    1.06,
+    0,
+  ).scale.z = 0.8;
+  part(body, new THREE.BoxGeometry(0.13, 0.12, 0.04), "metal", 0, 1.06, 0.25);
   part(
     body,
-    new THREE.CylinderGeometry(0.11, 0.12, 0.15, 6),
+    new THREE.BoxGeometry(0.075, 0.74, 0.035),
+    "leather",
+    -0.08,
+    1.36,
+    0.245,
+  ).rotation.z = -0.38;
+  part(
+    body,
+    new THREE.CylinderGeometry(0.1, 0.11, 0.15, 8),
     "skin",
     0,
-    1.67,
+    1.69,
     0,
   );
   part(
     body,
-    new THREE.IcosahedronGeometry(0.3, 1),
+    lathe(
+      [
+        [0, -0.22],
+        [0.2, -0.22],
+        [0.25, -0.04],
+        [0.24, 0.15],
+        [0.15, 0.29],
+        [0, 0.32],
+      ],
+      10,
+    ),
     "hood",
     0,
-    1.94,
-    -0.015,
-  ).scale.set(1, 1.15, 1);
-  part(body, new THREE.BoxGeometry(0.31, 0.31, 0.06), "face", 0, 1.94, 0.235);
-  part(body, new THREE.BoxGeometry(0.21, 0.12, 0.06), "skin", 0, 1.96, 0.27);
-  part(body, new THREE.BoxGeometry(0.32, 0.16, 0.13), "hood", 0, 1.82, 0.25);
-  for (const side of [-1, 1])
-    part(
-      body,
-      new THREE.IcosahedronGeometry(0.24, 0),
-      "metal",
-      side * 0.38,
-      1.53,
-      0,
-    ).scale.set(1.15, 0.65, 1);
-  const legs = [],
+    1.92,
+    -0.025,
+  ).scale.z = 0.93;
+  part(
+    body,
+    new THREE.CircleGeometry(0.185, 8),
+    "face",
+    0,
+    1.95,
+    0.205,
+  ).scale.y = 1.1;
+  part(
+    body,
+    new THREE.SphereGeometry(0.12, 8, 6),
+    "skin",
+    0,
+    1.96,
+    0.235,
+  ).scale.set(1, 0.95, 0.58);
+  part(body, new THREE.BoxGeometry(0.25, 0.105, 0.11), "hood", 0, 1.83, 0.23);
+  const thighs = [],
+    shins = [],
     arms = [];
   for (const side of [-1, 1]) {
-    const leg = new THREE.Group();
-    leg.position.set(side * 0.18, 0.78, 0);
-    root.add(leg);
-    legs.push(leg);
-    part(leg, new THREE.BoxGeometry(0.22, 0.43, 0.24), "leather", 0, -0.19, 0);
+    const plate = part(
+      body,
+      new THREE.SphereGeometry(0.22, 6, 4, 0, Math.PI * 2, 0, Math.PI * 0.65),
+      "metal",
+      side * 0.35,
+      1.48,
+      0,
+    );
+    plate.scale.set(1.05, 0.6, 1);
+    plate.rotation.z = side * -0.22;
+    const thigh = new THREE.Group();
+    thigh.position.set(side * 0.16, 0.8, 0);
+    root.add(thigh);
+    thighs.push(thigh);
     part(
-      leg,
-      new THREE.BoxGeometry(0.24, 0.3, 0.28),
+      thigh,
+      new THREE.CylinderGeometry(0.115, 0.095, 0.38, 7),
       "leather",
       0,
-      -0.53,
-      0.02,
+      -0.17,
+      0,
     );
+    const shin = new THREE.Group();
+    shin.position.y = -0.34;
+    thigh.add(shin);
+    shins.push(shin);
     part(
-      leg,
-      new THREE.BoxGeometry(0.24, 0.15, 0.39),
+      shin,
+      new THREE.CylinderGeometry(0.11, 0.09, 0.34, 7),
       "leather",
       0,
-      -0.69,
-      0.07,
+      -0.17,
+      0,
     );
-    part(leg, new THREE.BoxGeometry(0.17, 0.17, 0.04), "metal", 0, -0.39, 0.15);
+    part(
+      shin,
+      new THREE.SphereGeometry(0.13, 6, 4),
+      "metal",
+      0,
+      -0.01,
+      0.055,
+    ).scale.set(0.85, 1, 0.5);
+    part(
+      shin,
+      new THREE.BoxGeometry(0.19, 0.13, 0.32),
+      "leather",
+      0,
+      -0.34,
+      0.055,
+    );
     const arm = new THREE.Group();
-    arm.position.set(side * 0.43, 1.48, 0);
+    arm.position.set(side * 0.38, 1.47, 0);
     body.add(arm);
     arms.push(arm);
     part(
       arm,
-      new THREE.BoxGeometry(0.18, 0.45, 0.22),
+      new THREE.CylinderGeometry(0.11, 0.09, 0.36, 7),
       "coat",
-      side * 0.025,
-      -0.18,
+      side * 0.035,
+      -0.17,
       0,
     );
     part(
       arm,
-      new THREE.BoxGeometry(0.2, 0.22, 0.24),
+      new THREE.CylinderGeometry(0.1, 0.085, 0.25, 7),
       "leather",
-      side * 0.025,
-      -0.45,
-      0,
-    );
+      side * 0.035,
+      -0.43,
+      0.015,
+    ).rotation.x = -0.12;
     part(
       arm,
-      new THREE.IcosahedronGeometry(0.12, 0),
-      "skin",
-      side * 0.025,
-      -0.61,
-      0.02,
+      new THREE.SphereGeometry(0.095, 6, 4),
+      "leather",
+      side * 0.035,
+      -0.6,
+      0.04,
     );
   }
-  // A hinged, irregular hem moves as one cheap rigid mesh instead of cloth simulation.
-  const capeGeometry = new THREE.BufferGeometry();
-  capeGeometry.setAttribute(
+  // Original tailored cloak, with a scalloped hem and a small CPU-driven fold animation.
+  const columns = 6,
+    rows = 5,
+    vertices = [],
+    uv = [],
+    indices = [],
+    rest = [];
+  for (let row = 0; row <= rows; row++)
+    for (let col = 0; col <= columns; col++) {
+      const u = col / columns,
+        v = row / rows,
+        x = (u - 0.5) * (0.64 + v * 0.42),
+        y = -v * 1.05 + (row === rows ? 0.045 * Math.sin(col * 2) : 0),
+        z = -v * 0.16 - 0.045 * Math.cos(u * Math.PI * 4);
+      vertices.push(x, y, z);
+      rest.push(x, y, z);
+      uv.push(u, 1 - v);
+      if (row && col < columns) {
+        const i = row * (columns + 1) + col;
+        indices.push(
+          i,
+          i + 1,
+          i - columns - 1,
+          i + 1,
+          i - columns,
+          i - columns - 1,
+        );
+      }
+    }
+  const cloakGeometry = new THREE.BufferGeometry();
+  cloakGeometry.setAttribute(
     "position",
-    new THREE.Float32BufferAttribute(
-      [
-        -0.37, 0, 0, -0.55, -0.96, -0.2, 0, -0.75, -0.36, -0.37, 0, 0, 0, -0.75,
-        -0.36, 0.37, 0, 0, 0.37, 0, 0, 0, -0.75, -0.36, 0.48, -1.05, -0.19,
-      ],
-      3,
-    ),
+    new THREE.Float32BufferAttribute(vertices, 3),
   );
-  capeGeometry.computeVertexNormals();
-  const cape = part(body, capeGeometry, "cloak", 0, 1.61, -0.25);
-  part(
-    body,
-    new THREE.BoxGeometry(0.28, 0.38, 0.2),
-    "leather",
-    0.38,
-    0.96,
-    -0.09,
-  );
-  // Small memory talisman, deliberately visible even in the darkest forest.
-  part(body, new THREE.IcosahedronGeometry(0.07, 0), "clasp", 0, 1.48, 0.31);
+  cloakGeometry.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  cloakGeometry.setIndex(indices);
+  cloakGeometry.computeVertexNormals();
+  const cape = part(body, cloakGeometry, "cloak", 0, 1.61, -0.23);
+  part(body, new THREE.BoxGeometry(0.23, 0.3, 0.15), "leather", 0.34, 1, -0.01);
+  part(body, new THREE.TorusGeometry(0.06, 0.018, 4, 8), "metal", 0, 1.5, 0.27);
+  let blend = 0;
   return {
     root,
     animate(time, moving, running, airborne) {
-      const stride = moving ? (running ? 0.65 : 0.42) : 0;
-      legs.forEach((leg, i) => {
-        leg.rotation.x = Math.sin(time + i * Math.PI) * stride;
+      blend += (Number(moving) - blend) * 0.15;
+      const stride = (running ? 0.68 : 0.43) * blend;
+      thighs.forEach((leg, i) => {
+        const phase = time + i * Math.PI;
+        leg.rotation.x = Math.sin(phase) * stride;
+        shins[i].rotation.x =
+          Math.max(0, -Math.sin(phase)) * (running ? 0.75 : 0.36) * blend;
       });
       arms.forEach((arm, i) => {
-        arm.rotation.x = -Math.sin(time + i * Math.PI) * stride * 0.7;
+        arm.rotation.x = -Math.sin(time + i * Math.PI) * stride * 0.75 - 0.09;
+        arm.rotation.z = (i ? 1 : -1) * (0.05 + blend * 0.03);
       });
-      body.position.y = moving
-        ? Math.abs(Math.sin(time)) * 0.035
-        : Math.sin(time * 0.35) * 0.008;
-      cape.rotation.x =
-        -0.08 -
-        (running ? 0.2 : 0.05) -
-        Math.sin(time * 0.7) * 0.06 -
-        (airborne ? 0.15 : 0);
+      body.position.y =
+        Math.abs(Math.sin(time)) * blend * 0.028 +
+        Math.sin(time * 0.8) * (1 - blend) * 0.012;
+      body.rotation.x = running ? 0.08 * blend : 0;
+      const position = cape.geometry.attributes.position;
+      for (let i = 0; i < position.count; i++) {
+        const v = Math.floor(i / (columns + 1)) / rows;
+        position.setZ(
+          i,
+          rest[i * 3 + 2] -
+            v * (running ? 0.24 : 0.05) +
+            Math.sin(time * 0.75 + i * 0.35) * 0.045 * v +
+            (airborne ? -0.1 * v : 0),
+        );
+      }
+      position.needsUpdate = true;
     },
   };
 }

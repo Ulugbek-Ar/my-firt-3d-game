@@ -26,7 +26,20 @@ export function createShrine(scene, batch, addSolid, shrine) {
   }
   const centerZ = z - 1.2;
   batch.add("box", dark, x, y + 0.22, centerZ, 2, 0.5, 1.65);
-  batch.add("box", stone, x, y + 1.85, centerZ, 1.35, 3.25, 1.08, 0, 0, -0.035);
+  batch.add(
+    "box",
+    stone,
+    x,
+    y + 1.85,
+    centerZ,
+    1.35,
+    3.25,
+    1.08,
+    0,
+    0,
+    -0.035,
+    "runes",
+  );
   batch.add("rock", stone, x, y + 3.5, centerZ, 0.78, 0.65, 0.61, 0, 0.2);
   addSolid(x, y + 1.7, centerZ, 1.5, 3.7, 1.2);
   for (const side of [-1, 1]) {

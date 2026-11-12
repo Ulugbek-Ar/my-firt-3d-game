@@ -48,18 +48,30 @@ export function createForest(batch, detailBatch, addSolid) {
         h * 0.7,
         0.22 + h * 0.012,
       );
-      for (let tier = 0; tier < 3; tier++)
-        (tier === 0 ? batch : target).add(
-          "cone",
-          [0x304c46, 0x3b554a, 0x435e50][(grove + tier) % 3],
-          x,
-          y + h * (0.42 + tier * 0.23),
-          z,
-          r * (1 - tier * 0.22),
-          h * 0.56,
-          r * (1 - tier * 0.22),
-          0,
-          random(),
+      batch.add(
+        "pine",
+        [0x3d5146, 0x40594a, 0x4c5e4b][grove % 3],
+        x,
+        y + h * 0.67,
+        z,
+        r,
+        h * 1.05,
+        r,
+        0,
+        random() * 6,
+      );
+      if (i % 3 === 0)
+        detailBatch.add(
+          "pine",
+          0x465a46,
+          x + 0.55,
+          y + h * 0.42,
+          z + 0.3,
+          r * 0.75,
+          h * 0.48,
+          r * 0.75,
+          0.05,
+          random() * 6,
         );
       // Every colliding trunk and its base canopy remain visible on Low.
       addSolid(x, y + h * 0.25, z, 0.55, h * 0.5, 0.55);
@@ -128,6 +140,41 @@ export function createForest(batch, detailBatch, addSolid) {
     );
     if (i % 4 === 0)
       target.add("rock", 0x344e3f, x + 0.2, y + 0.15, z, 0.65, 0.35, 0.48);
+  }
+  for (const [x, z, angle] of [
+    [-18, 23, 0.9],
+    [21, 13, -0.5],
+    [-21, -16, 0.4],
+    [17, -28, 1.3],
+  ]) {
+    const y = groundHeight(x, z);
+    batch.add(
+      "cylinder",
+      0x484638,
+      x,
+      y + 0.26,
+      z,
+      0.23,
+      3.8,
+      0.23,
+      0,
+      angle,
+      Math.PI / 2,
+    );
+    for (let i = 0; i < 3; i++)
+      batch.add(
+        "cylinder",
+        0x484638,
+        x + i * 0.6 - 0.6,
+        y + 0.4,
+        z + 0.35,
+        0.065,
+        1,
+        0.065,
+        0.5,
+        angle,
+        0.6,
+      );
   }
   // Worn edging, gravel and broken flagstones follow the authored path.
   for (let z = -13; z < 28; z += 1.25)

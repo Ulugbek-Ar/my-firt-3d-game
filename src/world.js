@@ -4,6 +4,7 @@ import { EnvironmentBatch } from "./environment/batches.js";
 import { createBuildings } from "./environment/buildings.js";
 import { createForest } from "./environment/forest.js";
 import { createShrine } from "./environment/shrine.js";
+import { createLandmarks } from "./environment/landmarks.js";
 import { createAtmosphere } from "./environment/atmosphere.js";
 
 export const SHRINE = Object.freeze({ x: 0, z: -16 });
@@ -34,6 +35,7 @@ export function createWorld(scene, quality = "low") {
   }
   const terrain = createTerrain(scene);
   createBuildings(batch, addSolid, lanterns, addCameraObstacle);
+  createLandmarks(batch, addSolid, addCameraObstacle);
   const trees = createForest(batch, details, addSolid);
   const shrine = createShrine(scene, batch, addSolid, SHRINE);
   for (const [x, z] of [
@@ -48,8 +50,9 @@ export function createWorld(scene, quality = "low") {
     addSolid(x, y + 1.3, z, 0.2, 2.6, 0.2);
   }
   const atmosphere = createAtmosphere(scene, batch, lanterns);
-  batch.finish();
+  const staticMeshes = batch.finish();
   const detailMeshes = details.finish();
+  let qualitySetting = quality;
   const world = {
     colliders,
     cameraObstacles,
@@ -57,12 +60,24 @@ export function createWorld(scene, quality = "low") {
     shrine: SHRINE,
     stats: { trees },
     setQuality(value) {
+      qualitySetting = value;
       detailMeshes.forEach((m) => {
         m.visible = value === "medium";
       });
       shrine.motes.visible = value === "medium";
     },
-    update(time) {
+    update(time, cameraPosition) {
+      if (cameraPosition) {
+        const maxDistance = qualitySetting === "low" ? 83 : 110;
+        for (const mesh of staticMeshes)
+          mesh.visible =
+            mesh.userData.center.distanceToSquared(cameraPosition) <
+            (maxDistance + 18) ** 2;
+        for (const mesh of detailMeshes)
+          mesh.visible =
+            qualitySetting === "medium" &&
+            mesh.userData.center.distanceToSquared(cameraPosition) < 40 ** 2;
+      }
       shrine.update(time);
       atmosphere.update(time);
     },
